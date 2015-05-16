@@ -40,9 +40,11 @@ var detectorElem,
     detuneAmount;
 var canvasRatio;
 var frequencyPlot;
+var minInputFrequency = 40;
 var maxInputFrequency = 3000;
-var maxNumFreqHistoryVals = 300;
-var freqHistory = new Array(maxNumFreqHistoryVals);
+var rawFreqHistory = new Array(300);
+var avgFreqHistory = new Array(300);
+var numAvgSamples = 10;
 var updateNum = 0;
 
 
@@ -123,7 +125,7 @@ window.onload = function() {
       return false;
   };
 
-  frequencyPlot = $.plot("#placeholder", [ getFrequencyHistory() ], {
+  frequencyPlot = $.plot("#placeholder", [ getRawFrequencyHistory(), getAvgFrequencyHistory() ], {
     series: {
       shadowSize: 0	// Drawing is faster without shadows
     },
@@ -319,19 +321,58 @@ function autoCorrelate( buf, sampleRate ) {
   return -1;
 }
 
-function getFrequencyHistory() {
+function getAvgFrequencyHistory() {
 
   // Zip the y values with the x values
   var res = [];
-  for (var i = 0; i < freqHistory.length; ++i) {
-    if (freqHistory[i]) {
-      res.push([i, freqHistory[i]])
+  for (var i = 0; i < avgFreqHistory.length; ++i) {
+    if (avgFreqHistory[i]) {
+      res.push([i, avgFreqHistory[i]])
     } else {
       res.push([i, null])
     }
   }
 
   return res;
+}
+
+function getRawFrequencyHistory() {
+
+  // Zip the y values with the x values
+  var res = [];
+  for (var i = 0; i < rawFreqHistory.length; ++i) {
+    if (rawFreqHistory[i]) {
+      res.push([i, rawFreqHistory[i]])
+    } else {
+      res.push([i, null])
+    }
+  }
+
+  return res;
+}
+
+function calculateAverageFreq() {
+  var sum = 0;
+  var count = 0;
+  for (var i = 0; i < numAvgSamples; ++i) {
+    var idx = rawFreqHistory.length - 1 - i;
+    if (rawFreqHistory[idx]) {
+      sum += rawFreqHistory[idx];
+      count += 1;
+    }
+  }
+
+  var avgPitch;
+  if (count) {
+    avgPitch = sum / count;
+  } else {
+    avgPitch = 0;
+  }
+
+  avgFreqHistory.shift();
+  avgFreqHistory.push(avgPitch);
+
+  return avgPitch;
 }
 
 function updatePitch( time ) {
@@ -373,6 +414,21 @@ function updatePitch( time ) {
   var pitch;
   if (ac == -1) {
     pitch = 0;
+  } else {
+    pitch = ac;
+    if (pitch > maxInputFrequency) {
+      pitch = 0;
+    } else if (pitch < minInputFrequency) {
+      pitch = 0;
+    }
+  }
+
+  rawFreqHistory.shift();
+  rawFreqHistory.push(pitch);
+
+  pitch = calculateAverageFreq();
+
+  if (pitch == 0) {
     detectorElem.className = "vague";
     pitchElem.innerText = "--";
     noteElem.innerText = "-";
@@ -380,7 +436,6 @@ function updatePitch( time ) {
     detuneAmount.innerText = "--";
   } else {
     detectorElem.className = "confident";
-    pitch = ac;
     pitchElem.innerText = Math.round( pitch ) ;
     var note =  noteFromPitch( pitch );
     noteElem.innerHTML = noteStrings[note%12];
@@ -395,16 +450,10 @@ function updatePitch( time ) {
         detuneElem.className = "sharp";
       detuneAmount.innerHTML = Math.abs( detune );
     }
-    if (pitch > maxInputFrequency) {
-      pitch = 0;
-    }
   }
 
-  freqHistory.shift();
-  freqHistory.push(pitch);
-
   if (frequencyPlot && (updateNum % 1) == 0) {
-    frequencyPlot.setData([getFrequencyHistory()]);
+    frequencyPlot.setData([getRawFrequencyHistory(), getAvgFrequencyHistory()]);
     frequencyPlot.draw();
   }
 
