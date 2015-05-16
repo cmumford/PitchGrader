@@ -39,6 +39,10 @@ var detectorElem,
     detuneElem,
     detuneAmount;
 var canvasRatio;
+var frequencyPlot;
+var freqHistory = [];
+var maxNumFreqHistoryVals = 300;
+
 
 window.onload = function() {
   audioContext = new AudioContext();
@@ -116,6 +120,19 @@ window.onload = function() {
       reader.readAsArrayBuffer(e.dataTransfer.files[0]);
       return false;
   };
+
+  frequencyPlot = $.plot("#placeholder", [ getFrequencyHistory() ], {
+    series: {
+      shadowSize: 0	// Drawing is faster without shadows
+    },
+    yaxis: {
+      min: 0,
+      max: 100
+    },
+    xaxis: {
+      show: false
+    }
+  });
 }
 
 function error() {
@@ -300,6 +317,35 @@ function autoCorrelate( buf, sampleRate ) {
   return -1;
 }
 
+function getFrequencyHistory() {
+
+  if (freqHistory.length > 0)
+    freqHistory = freqHistory.slice(1);
+
+  // Do a random walk
+  while (freqHistory.length < maxNumFreqHistoryVals) {
+
+    var prev = freqHistory.length > 0 ? freqHistory[freqHistory.length - 1] : 50,
+      y = prev + Math.random() * 10 - 5;
+
+    if (y < 0) {
+      y = 0;
+    } else if (y > 100) {
+      y = 100;
+    }
+
+    freqHistory.push(y);
+  }
+
+  // Zip the generated y values with the x values
+  var res = [];
+  for (var i = 0; i < freqHistory.length; ++i) {
+    res.push([i, freqHistory[i]])
+  }
+
+  return res;
+}
+
 function updatePitch( time ) {
   var cycles = new Array;
   if (!analyser)
@@ -333,6 +379,11 @@ function updatePitch( time ) {
       waveContext.lineTo(i, hd2+(buf[i]*hd2));
     }
     waveContext.stroke();
+  }
+
+  if (frequencyPlot) {
+    frequencyPlot.setData([getFrequencyHistory()]);
+    frequencyPlot.draw();
   }
 
   if (ac == -1) {
