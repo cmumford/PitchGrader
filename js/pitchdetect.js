@@ -33,11 +33,12 @@ var DEBUGCANVAS = null;
 var mediaStreamSource = null;
 var detectorElem, 
     canvasElem,
-    waveCanvas,
+    waveContext,
     pitchElem,
     noteElem,
     detuneElem,
     detuneAmount;
+var canvasRatio;
 
 window.onload = function() {
   audioContext = new AudioContext();
@@ -57,9 +58,36 @@ window.onload = function() {
   canvasElem = document.getElementById( "output" );
   DEBUGCANVAS = document.getElementById( "waveform" );
   if (DEBUGCANVAS) {
-    waveCanvas = DEBUGCANVAS.getContext("2d");
-    waveCanvas.strokeStyle = "black";
-    waveCanvas.lineWidth = 1;
+    waveContext = DEBUGCANVAS.getContext("2d");
+    waveContext.strokeStyle = "black";
+    waveContext.lineWidth = 1;
+
+    var devicePixelRatio = window.devicePixelRatio || 1;
+    var backingStoreRatio = waveContext.webkitBackingStorePixelRatio ||
+                            waveContext.mozBackingStorePixelRatio ||
+                            waveContext.msBackingStorePixelRatio ||
+                            waveContext.oBackingStorePixelRatio ||
+                            waveContext.backingStorePixelRatio || 1;
+
+    canvasRatio = devicePixelRatio / backingStoreRatio;
+
+    // upscale the canvas if the two ratios don't match
+    if (devicePixelRatio !== backingStoreRatio) {
+
+        var oldWidth = DEBUGCANVAS.width;
+        var oldHeight = DEBUGCANVAS.height;
+
+        DEBUGCANVAS.width = oldWidth * canvasRatio;
+        DEBUGCANVAS.height = oldHeight * canvasRatio;
+
+        DEBUGCANVAS.style.width = oldWidth + 'px';
+        DEBUGCANVAS.style.height = oldHeight + 'px';
+
+        // now scale the context to counter
+        // the fact that we've manually scaled
+        // our canvas element
+        waveContext.scale(canvasRatio, canvasRatio);
+    }
   }
   pitchElem = document.getElementById( "pitch" );
   noteElem = document.getElementById( "note" );
@@ -318,27 +346,31 @@ function updatePitch( time ) {
   // TODO: Paint confidence meter on canvasElem here.
 
   if (DEBUGCANVAS) {  // This draws the current waveform, useful for debugging
-    waveCanvas.clearRect(0,0,512,256);
-    waveCanvas.strokeStyle = "red";
-    waveCanvas.beginPath();
-    waveCanvas.moveTo(0,0);
-    waveCanvas.lineTo(0,256);
-    waveCanvas.moveTo(128,0);
-    waveCanvas.lineTo(128,256);
-    waveCanvas.moveTo(256,0);
-    waveCanvas.lineTo(256,256);
-    waveCanvas.moveTo(384,0);
-    waveCanvas.lineTo(384,256);
-    waveCanvas.moveTo(512,0);
-    waveCanvas.lineTo(512,256);
-    waveCanvas.stroke();
-    waveCanvas.strokeStyle = "black";
-    waveCanvas.beginPath();
-    waveCanvas.moveTo(0,buf[0]);
-    for (var i=1;i<512;i++) {
-      waveCanvas.lineTo(i,128+(buf[i]*128));
+    var width = DEBUGCANVAS.width / canvasRatio;
+    var height = DEBUGCANVAS.height / canvasRatio;
+    var wd4 = width / 4;
+    var hd2 = height / 2;
+    waveContext.clearRect(0, 0, width, height);
+    waveContext.strokeStyle = "red";
+    waveContext.beginPath();
+    waveContext.moveTo(0, 0);
+    waveContext.lineTo(0, height);
+    waveContext.moveTo(wd4, 0);
+    waveContext.lineTo(wd4, height);
+    waveContext.moveTo(2*wd4, 0);
+    waveContext.lineTo(2*wd4, height);
+    waveContext.moveTo(3*wd4, 0);
+    waveContext.lineTo(3*wd4, height);
+    waveContext.moveTo(width, 0);
+    waveContext.lineTo(width, height);
+    waveContext.stroke();
+    waveContext.strokeStyle = "black";
+    waveContext.beginPath();
+    waveContext.moveTo(0, buf[0]);
+    for (var i=1; i<width; i++) {
+      waveContext.lineTo(i, hd2+(buf[i]*hd2));
     }
-    waveCanvas.stroke();
+    waveContext.stroke();
   }
 
   if (ac == -1) {
