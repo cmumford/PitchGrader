@@ -40,8 +40,10 @@ var detectorElem,
     detuneAmount;
 var canvasRatio;
 var frequencyPlot;
-var freqHistory = [];
+var maxInputFrequency = 3000;
 var maxNumFreqHistoryVals = 300;
+var freqHistory = new Array(maxNumFreqHistoryVals);
+var updateNum = 0;
 
 
 window.onload = function() {
@@ -127,7 +129,7 @@ window.onload = function() {
     },
     yaxis: {
       min: 0,
-      max: 100
+      max: 2000
     },
     xaxis: {
       show: false
@@ -319,34 +321,21 @@ function autoCorrelate( buf, sampleRate ) {
 
 function getFrequencyHistory() {
 
-  if (freqHistory.length > 0)
-    freqHistory = freqHistory.slice(1);
-
-  // Do a random walk
-  while (freqHistory.length < maxNumFreqHistoryVals) {
-
-    var prev = freqHistory.length > 0 ? freqHistory[freqHistory.length - 1] : 50,
-      y = prev + Math.random() * 10 - 5;
-
-    if (y < 0) {
-      y = 0;
-    } else if (y > 100) {
-      y = 100;
-    }
-
-    freqHistory.push(y);
-  }
-
-  // Zip the generated y values with the x values
+  // Zip the y values with the x values
   var res = [];
   for (var i = 0; i < freqHistory.length; ++i) {
-    res.push([i, freqHistory[i]])
+    if (freqHistory[i]) {
+      res.push([i, freqHistory[i]])
+    } else {
+      res.push([i, null])
+    }
   }
 
   return res;
 }
 
 function updatePitch( time ) {
+  updateNum += 1;
   var cycles = new Array;
   if (!analyser)
     return;
@@ -381,12 +370,9 @@ function updatePitch( time ) {
     waveContext.stroke();
   }
 
-  if (frequencyPlot) {
-    frequencyPlot.setData([getFrequencyHistory()]);
-    frequencyPlot.draw();
-  }
-
+  var pitch;
   if (ac == -1) {
+    pitch = 0;
     detectorElem.className = "vague";
     pitchElem.innerText = "--";
     noteElem.innerText = "-";
@@ -409,6 +395,17 @@ function updatePitch( time ) {
         detuneElem.className = "sharp";
       detuneAmount.innerHTML = Math.abs( detune );
     }
+    if (pitch > maxInputFrequency) {
+      pitch = 0;
+    }
+  }
+
+  freqHistory.shift();
+  freqHistory.push(pitch);
+
+  if (frequencyPlot && (updateNum % 1) == 0) {
+    frequencyPlot.setData([getFrequencyHistory()]);
+    frequencyPlot.draw();
   }
 
   if (!window.requestAnimationFrame)
