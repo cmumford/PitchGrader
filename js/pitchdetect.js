@@ -356,7 +356,7 @@ function calculateAverageFreq() {
   return avgPitch;
 }
 
-function updatePitch( time ) {
+function updatePitch() {
   updateNum += 1;
   var cycles = new Array;
   if (!analyser)
