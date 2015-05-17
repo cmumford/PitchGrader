@@ -163,7 +163,7 @@ function gotStream(stream) {
   analyser = audioContext.createAnalyser();
   analyser.fftSize = 2048;
   mediaStreamSource.connect( analyser );
-  updatePitch();
+  analyzeAudio();
 }
 
 function stopPlayback() {
@@ -191,7 +191,7 @@ function startPrerecorded() {
   analyser.connect( audioContext.destination );
   sourceNode.start( 0 );
   isPlaying = true;
-  updatePitch();
+  analyzeAudio();
 }
 
 function startLive() {
@@ -224,7 +224,7 @@ function startOscillator() {
   analyser.connect( audioContext.destination );
   sourceNode.start(0);
   isPlaying = true;
-  updatePitch();
+  analyzeAudio();
 }
 
 var rafID = null;
@@ -356,7 +356,7 @@ function calculateAverageFreq() {
   return avgPitch;
 }
 
-function updatePitch() {
+function analyzeAudio() {
   updateNum += 1;
   var cycles = new Array;
   if (!analyser)
@@ -440,5 +440,5 @@ function updatePitch() {
 
   if (!window.requestAnimationFrame)
     window.requestAnimationFrame = window.webkitRequestAnimationFrame;
-  rafID = window.requestAnimationFrame( updatePitch );
+  rafID = window.requestAnimationFrame( analyzeAudio );
 }
