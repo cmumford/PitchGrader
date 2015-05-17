@@ -69,8 +69,17 @@ window.onload = function() {
   debug = getParameterByName('debug');
   debug = debug == 'true' || debug == '1';
 
-  if (debug)
+  if (debug) {
     $("#waveform").toggle();
+    $("#legend").toggle();
+    $('.pitch-history-container').toggle();
+  }
+  var min = parseInt(getParameterByName('minDuration'));
+  if (!isNaN(min) && min >= 10 && min < 4000)
+    minNoteDuration = min;
+  var dur = parseInt(getParameterByName('numAvgSamples'));
+  if (!isNaN(dur) && dur >= 1 && dur <= 200)
+    numAvgSamples = dur;
 
   audioContext = new AudioContext();
   MAX_SIZE = Math.max(4,Math.floor(audioContext.sampleRate/5000));  // corresponds to a 5kHz signal
@@ -150,7 +159,6 @@ window.onload = function() {
   };
 
   if (debug) {
-    $('.pitch-history-container').toggle();
     frequencyPlot = $.plot("#pitch-history-plot", [ getRawFrequencyHistory(), getAvgFrequencyHistory() ], {
       series: {
         shadowSize: 0	// Drawing is faster without shadows
