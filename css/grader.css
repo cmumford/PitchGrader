@@ -1,6 +1,6 @@
 @import url(http://fonts.googleapis.com/css?family=Alike);
 
-.demo-container {
+.pitch-history-container {
 	box-sizing: border-box;
 	height: 350px;
 	padding: 20px 15px 15px 15px;
@@ -19,7 +19,7 @@
 	-webkit-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
 
-.demo-placeholder {
+.pitch-history-placeholder {
 	width: 100%;
 	height: 100%;
 	font-size: 14px;
