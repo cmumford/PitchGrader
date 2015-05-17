@@ -18,25 +18,25 @@
       <div>
         <h1>Pitch Grader</h1>
 
-        <div class="row">
-          <div class="col-md-6">
-            <div id="controls">
-              <div class="btn-group" data-toggle="buttons">
-                <label class="btn btn-default active">
-                  <input type="radio" id="q156" name="stop" value="stop" /> Stop
-                </label>
-                <label class="btn btn-default">
-                  <input type="radio" id="q157" name="prerecorded" value="prerecorded" onclick="startPrerecorded()" /> Pre-Recorded
-                </label>
-                <label class="btn btn-default">
-                  <input type="radio" id="q158" name="live" value="live" onclick="startLive()" /> Live Input
-                </label>
-                <label class="btn btn-default">
-                  <input type="radio" id="q159" name="tone" value="oscillator" onclick="startOscillator()" /> Oscillator
-                </label>
-              </div>
-            </div>
+        <div id="controls">
+          <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default active">
+              <input type="radio" id="q156" name="stop" value="stop" /> Stop
+            </label>
+            <label class="btn btn-default">
+              <input type="radio" id="q157" name="prerecorded" value="prerecorded" onclick="startPrerecorded()" /> Pre-Recorded
+            </label>
+            <label class="btn btn-default">
+              <input type="radio" id="q158" name="live" value="live" onclick="startLive()" /> Live Input
+            </label>
+            <label class="btn btn-default">
+              <input type="radio" id="q159" name="tone" value="oscillator" onclick="startOscillator()" /> Oscillator
+            </label>
+          </div>
+        </div>
 
+        <div class="row">
+          <div class="col-md-4">
             <div id="detector" class="vague">
               <div class="pitch"><span id="pitch">--</span>Hz</div>
               <div class="note"><span id="note">--</span></div>   
@@ -44,7 +44,7 @@
               <div id="detune"><span id="detune_amt">--</span><span id="flat">cents &#9837;</span><span id="sharp">cents &#9839;</span></div>
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-8">
             <canvas id="waveform" width="512" height="256"></canvas>
           </div>
         </div>
