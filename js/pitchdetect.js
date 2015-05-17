@@ -52,9 +52,26 @@ var lastNote = '?';
 var lastNoteStartTime = 0;
 var minNoteDuration = 350;
 var currNoteAdded = false;
+var debug = false;
 
+
+function getParameterByName(name) {
+  var search = location.search;
+  if (search.length > 0 && search[search.length-1] == '/')
+    search = search.substr(0, search.length-1);
+  name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+  var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+    results = regex.exec(search);
+  return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
 
 window.onload = function() {
+  debug = getParameterByName('debug');
+  debug = debug == 'true' || debug == '1';
+
+  if (debug)
+    $("#waveform").toggle();
+
   audioContext = new AudioContext();
   MAX_SIZE = Math.max(4,Math.floor(audioContext.sampleRate/5000));  // corresponds to a 5kHz signal
   var request = new XMLHttpRequest();
@@ -69,8 +86,8 @@ window.onload = function() {
 
   detectorElem = document.getElementById( "detector" );
   canvasElem = document.getElementById( "output" );
-  DEBUGCANVAS = document.getElementById( "waveform" );
-  if (DEBUGCANVAS) {
+  if (debug) {
+    DEBUGCANVAS = document.getElementById( "waveform" );
     waveContext = DEBUGCANVAS.getContext("2d");
     waveContext.strokeStyle = "black";
     waveContext.lineWidth = 1;
@@ -132,18 +149,21 @@ window.onload = function() {
       return false;
   };
 
-  frequencyPlot = $.plot("#placeholder", [ getRawFrequencyHistory(), getAvgFrequencyHistory() ], {
-    series: {
-      shadowSize: 0	// Drawing is faster without shadows
-    },
-    yaxis: {
-      min: 0,
-      max: 2000
-    },
-    xaxis: {
-      show: false
-    }
-  });
+  if (debug) {
+    $('.pitch-history-container').toggle();
+    frequencyPlot = $.plot("#pitch-history-plot", [ getRawFrequencyHistory(), getAvgFrequencyHistory() ], {
+      series: {
+        shadowSize: 0	// Drawing is faster without shadows
+      },
+      yaxis: {
+        min: 0,
+        max: 2000
+      },
+      xaxis: {
+        show: false
+      }
+    });
+  }
 }
 
 function error() {
