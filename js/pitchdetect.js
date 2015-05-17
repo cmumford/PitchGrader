@@ -44,7 +44,7 @@ var minInputFrequency = 40;
 var maxInputFrequency = 3000;
 var rawFreqHistory = new Array(300);
 var avgFreqHistory = new Array(300);
-var numAvgSamples = 10;
+var numAvgSamples = 5;
 var updateNum = 0;
 
 
