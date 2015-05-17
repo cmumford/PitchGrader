@@ -62,11 +62,6 @@ div.vague {
   padding-top: 10px;
 }
 
-#output {
-  width: 300px;
-  height: 42px;
-}
-
 #flat {
   display: none;
 }
