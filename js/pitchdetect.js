@@ -36,6 +36,7 @@ var detectorElem,
     waveContext,
     pitchElem,
     noteElem,
+    noteHistoryElem,
     detuneElem,
     detuneAmount;
 var canvasRatio;
@@ -46,6 +47,11 @@ var rawFreqHistory = new Array(300);
 var avgFreqHistory = new Array(300);
 var numAvgSamples = 5;
 var updateNum = 0;
+var noteHistory = [];
+var lastNote = '?';
+var lastNoteStartTime = 0;
+var minNoteDuration = 350;
+var currNoteAdded = false;
 
 
 window.onload = function() {
@@ -98,6 +104,7 @@ window.onload = function() {
   }
   pitchElem = document.getElementById( "pitch" );
   noteElem = document.getElementById( "note" );
+  noteHistoryElem = document.getElementById( "note-history" );
   detuneElem = document.getElementById( "detune" );
   detuneAmount = document.getElementById( "detune_amt" );
 
@@ -166,6 +173,13 @@ function gotStream(stream) {
   analyzeAudio();
 }
 
+function clearPitchHistory() {
+  lastNote = '?';
+  currNoteAdded = false;
+  noteHistory = [];
+  noteHistoryElem.innerHTML = '';
+}
+
 function stopPlayback() {
   if (!isPlaying)
     return;
@@ -179,6 +193,7 @@ function stopPlayback() {
 }
 
 function startPrerecorded() {
+  clearPitchHistory();
   stopPlayback();
 
   sourceNode = audioContext.createBufferSource();
@@ -195,6 +210,7 @@ function startPrerecorded() {
 }
 
 function startLive() {
+  clearPitchHistory();
   stopPlayback();
 
   getUserMedia(
@@ -204,7 +220,7 @@ function startLive() {
           "googEchoCancellation": "false",
           "googAutoGainControl": "false",
           "googNoiseSuppression": "false",
-          "googHighpassFilter": "false"
+          "googHighpassFilter": "true"
         },
         "optional": []
       },
@@ -213,7 +229,7 @@ function startLive() {
 }
 
 function startOscillator() {
-  console.log("Oscillator");
+  clearPitchHistory();
   stopPlayback();
 
   sourceNode = audioContext.createOscillator();
@@ -409,17 +425,20 @@ function analyzeAudio() {
 
   pitch = calculateAverageFreq();
 
+  var currNote;
   if (pitch == 0) {
     detectorElem.className = "vague";
     pitchElem.innerText = "--";
     noteElem.innerText = "-";
     detuneElem.className = "";
     detuneAmount.innerText = "--";
+    currNote = '?';
   } else {
     detectorElem.className = "confident";
     pitchElem.innerText = Math.round( pitch ) ;
     var note =  noteFromPitch( pitch );
-    noteElem.innerHTML = noteStrings[note%12];
+    currNote = noteStrings[note%12];
+    noteElem.innerHTML = currNote;
     var detune = centsOffFromPitch( pitch, note );
     if (detune == 0 ) {
       detuneElem.className = "";
@@ -431,6 +450,19 @@ function analyzeAudio() {
         detuneElem.className = "sharp";
       detuneAmount.innerHTML = Math.abs( detune );
     }
+  }
+
+  var now = new Date();
+  if (currNote != '?' && currNote === lastNote) {
+    if (!currNoteAdded && now - lastNoteStartTime >= minNoteDuration) {
+      noteHistory.push(currNote);
+      noteHistoryElem.innerHTML = noteHistory.join(' ');
+      currNoteAdded = true;
+    }
+  } else {
+    lastNote = currNote;
+    currNoteAdded = false;
+    lastNoteStartTime = now;
   }
 
   if (frequencyPlot && (updateNum % 1) == 0) {
