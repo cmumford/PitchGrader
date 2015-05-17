@@ -166,69 +166,20 @@ function gotStream(stream) {
   updatePitch();
 }
 
-function toggleOscillator() {
-  if (isPlaying) {
-    //stop playing and return
-    sourceNode.stop( 0 );
-    sourceNode = null;
-    analyser = null;
-    isPlaying = false;
-    if (!window.cancelAnimationFrame)
-      window.cancelAnimationFrame = window.webkitCancelAnimationFrame;
-    window.cancelAnimationFrame( rafID );
-    return "play oscillator";
-  }
-  sourceNode = audioContext.createOscillator();
-
-  analyser = audioContext.createAnalyser();
-  analyser.fftSize = 2048;
-  sourceNode.connect( analyser );
-  analyser.connect( audioContext.destination );
-  sourceNode.start(0);
-  isPlaying = true;
-  isLiveInput = false;
-  updatePitch();
-
-  return "stop";
+function stopPlayback() {
+  if (!isPlaying)
+    return;
+  sourceNode.stop( 0 );
+  sourceNode = null;
+  analyser = null;
+  isPlaying = false;
+  if (!window.cancelAnimationFrame)
+    window.cancelAnimationFrame = window.webkitCancelAnimationFrame;
+  window.cancelAnimationFrame( rafID );
 }
 
-function toggleLiveInput() {
-  if (isPlaying) {
-    //stop playing and return
-    sourceNode.stop( 0 );
-    sourceNode = null;
-    analyser = null;
-    isPlaying = false;
-    if (!window.cancelAnimationFrame)
-      window.cancelAnimationFrame = window.webkitCancelAnimationFrame;
-    window.cancelAnimationFrame( rafID );
-  }
-  getUserMedia(
-    {
-      "audio": {
-          "mandatory": {
-              "googEchoCancellation": "false",
-              "googAutoGainControl": "false",
-              "googNoiseSuppression": "false",
-              "googHighpassFilter": "false"
-          },
-          "optional": []
-      },
-    }, gotStream);
-}
-
-function togglePlayback() {
-  if (isPlaying) {
-    //stop playing and return
-    sourceNode.stop( 0 );
-    sourceNode = null;
-    analyser = null;
-    isPlaying = false;
-    if (!window.cancelAnimationFrame)
-      window.cancelAnimationFrame = window.webkitCancelAnimationFrame;
-    window.cancelAnimationFrame( rafID );
-    return "start";
-  }
+function startPrerecorded() {
+  stopPlayback();
 
   sourceNode = audioContext.createBufferSource();
   sourceNode.buffer = theBuffer;
@@ -240,10 +191,40 @@ function togglePlayback() {
   analyser.connect( audioContext.destination );
   sourceNode.start( 0 );
   isPlaying = true;
-  isLiveInput = false;
   updatePitch();
+}
 
-  return "stop";
+function startLive() {
+  stopPlayback();
+
+  getUserMedia(
+    {
+      "audio": {
+        "mandatory": {
+          "googEchoCancellation": "false",
+          "googAutoGainControl": "false",
+          "googNoiseSuppression": "false",
+          "googHighpassFilter": "false"
+        },
+        "optional": []
+      },
+    }, gotStream);
+  isPlaing = true;
+}
+
+function startOscillator() {
+  console.log("Oscillator");
+  stopPlayback();
+
+  sourceNode = audioContext.createOscillator();
+
+  analyser = audioContext.createAnalyser();
+  analyser.fftSize = 2048;
+  sourceNode.connect( analyser );
+  analyser.connect( audioContext.destination );
+  sourceNode.start(0);
+  isPlaying = true;
+  updatePitch();
 }
 
 var rafID = null;

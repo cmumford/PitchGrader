@@ -71,6 +71,10 @@ div.vague {
   display: none;
 }
 
+#controls {
+  margin-bottom: 10px;
+}
+
 #sharp {
   display: none;
 }

@@ -21,10 +21,23 @@
 
         <div class="row">
           <div class="col-md-6">
-            <button onclick="this.innerText = togglePlayback()">use demo audio</button>
-            <button onclick="toggleLiveInput()">use live input</button>
-            <button onclick="toggleOscillator()">use oscillator</button>
-            <button onclick="updatePitch(0);">sample</button>
+            <div id="controls">
+              <div class="btn-group" data-toggle="buttons">
+                <label class="btn btn-default active">
+                  <input type="radio" id="q156" name="stop" value="stop" /> Stop
+                </label>
+                <label class="btn btn-default">
+                  <input type="radio" id="q157" name="prerecorded" value="prerecorded" onclick="startPrerecorded()" /> Pre-Recorded
+                </label>
+                <label class="btn btn-default">
+                  <input type="radio" id="q158" name="live" value="live" onclick="startLive()" /> Live Input
+                </label>
+                <label class="btn btn-default">
+                  <input type="radio" id="q159" name="tone" value="oscillator" onclick="startOscillator()" /> Oscillator
+                </label>
+              </div>
+              <button onclick="updatePitch(0);">sample</button>
+            </div>
 
             <div id="detector" class="vague">
               <div class="pitch"><span id="pitch">--</span>Hz</div>
@@ -50,5 +63,21 @@
     <script src="js/bootstrap.min.js"></script>
     <script src="js/jquery.flot.js"></script>
     <script src="js/pitchdetect.js"></script>
+    <script>
+    var currentAction = 'stop';
+    $(document).on('change', 'input:radio[id^="q"]', function (event) {
+      if (event.target.name == currentAction)
+        return;
+      currentAction = event.target.name;
+      if (event.target.name == 'stop')
+        stopPlayback();
+      else if (event.target.name == 'prerecorded')
+        startPrerecorded();
+      else if (event.target.name == 'live')
+        startLive();
+      else if (event.target.name == 'tone')
+        startOscillator();
+    });
+    </script>
   </body>
 </html>
