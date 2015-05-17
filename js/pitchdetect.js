@@ -385,9 +385,9 @@ function updatePitch( time ) {
     waveContext.stroke();
     waveContext.strokeStyle = "black";
     waveContext.beginPath();
-    waveContext.moveTo(0, buf[0]);
+    waveContext.moveTo(0, hd2+buf[0]*hd2);
     for (var i=1; i<width; i++) {
-      waveContext.lineTo(i, hd2+(buf[i]*hd2));
+      waveContext.lineTo(i, hd2+buf[i]*hd2);
     }
     waveContext.stroke();
   }
